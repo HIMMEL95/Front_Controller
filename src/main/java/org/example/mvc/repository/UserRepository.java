@@ -11,7 +11,6 @@ public class UserRepository {
 
     public static void save(User user) {
         users.put(user.getUserId(), user);
-        System.out.println(user.getUserId());
     }
 
     public static Collection<User> findAll() {
