@@ -1,9 +1,9 @@
 package org.example.mvc;
 
 import org.example.mvc.controller.Controller;
-import org.example.mvc.controller.HandlerKey;
 import org.example.mvc.controller.RequestMethod;
 import org.example.mvc.view.JspViewResolver;
+import org.example.mvc.view.ModelAndView;
 import org.example.mvc.view.View;
 import org.example.mvc.view.ViewResolver;
 import org.slf4j.Logger;
@@ -25,6 +25,8 @@ public class DispatcherServlet extends HttpServlet {
 
     private RequestMappingHandlerMapping rmhm;
 
+    private List<HandlerAdapter> handlerAdapters;
+
     private List<ViewResolver> viewResolvers;
 
     @Override
@@ -32,6 +34,7 @@ public class DispatcherServlet extends HttpServlet {
         rmhm = new RequestMappingHandlerMapping();
         rmhm.init();
 
+        handlerAdapters = List.of(new SimpleControllerHandlerAdapter());
         viewResolvers = Collections.singletonList(new JspViewResolver());
     }
 
@@ -42,6 +45,13 @@ public class DispatcherServlet extends HttpServlet {
             Controller handler = rmhm.findHandler(new HandlerKey(RequestMethod.valueOf(request.getMethod()), request.getRequestURI()));
             // "redirect" vs forward
             String viewName = handler.handleRequest(request, response);
+
+            HandlerAdapter handlerAdapter = handlerAdapters.stream()
+                    .filter(ha -> ha.supports(handler))
+                    .findFirst()
+                    .orElseThrow(() -> new ServletException("No adapter for handler [" + handler + "]"));
+
+            ModelAndView modelAndView = handlerAdapter.handle(request, response, handler);
 
             for (ViewResolver viewResolver : viewResolvers) {
                 View view = viewResolver.resolveView(viewName);

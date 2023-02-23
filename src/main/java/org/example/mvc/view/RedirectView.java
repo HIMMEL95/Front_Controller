@@ -15,6 +15,7 @@ public class RedirectView implements View{
 
     @Override
     public void render(Map<String, ?> model, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        model.forEach(request::setAttribute);
         response.sendRedirect(name.substring(DEFAULT_REDIRECT_PREFIX.length()));
     }
 }
