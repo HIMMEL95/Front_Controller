@@ -2,6 +2,7 @@ package org.example.mvc;
 
 import org.example.mvc.annotation.Controller;
 import org.example.mvc.annotation.RequestMapping;
+import org.example.mvc.controller.RequestMethod;
 import org.reflections.Reflections;
 
 import java.lang.annotation.Annotation;
@@ -28,8 +29,18 @@ public class AnnotationHandlerMapping implements HandlerMapping{
         clazzesWithControllerAnnotation.forEach(clazz ->
                 Arrays.stream(clazz.getDeclaredMethods()).forEach(declaredMethod -> {
                     RequestMapping requestMapping = declaredMethod.getDeclaredAnnotation(RequestMapping.class);
+
+                    // @RequestMapping(value = "/", method = RequestMethod.GET)
+                    Arrays.stream(getRequestMethods(requestMapping))
+                            .forEach(requestMethod -> handlers.put(
+                                    new HandlerKey(requestMethod, requestMapping.value()), new AnnotationHandler(clazz, declaredMethod) // requestMethod = GET, requestMapping.value() = "/"
+                            ));
                 })
         );
+    }
+
+    private RequestMethod[] getRequestMethods(RequestMapping requestMapping) {
+        return requestMapping.method();
     }
 
     @Override
